@@ -31,6 +31,11 @@ class ViewController: UIViewController {
     var costPerIceCubeLabel: UILabel!
     var numberOfLemonsPurchasedLabel: UILabel!
     var numberOfIceCubesPurchasedLabel: UILabel!
+    var makeLemonadeLabel: UILabel!
+    var lemonsInMixLabel: UILabel!
+    var iceInMixLabel: UILabel!
+    var resultsLabel: UILabel!
+    var resultsReturnedLabel: UILabel!
     
     // UIViews
     
@@ -42,6 +47,7 @@ class ViewController: UIViewController {
     // Buttons
     var plusButton: UIButton!
     var minusButton: UIButton!
+    var mixLemonadeButton: UIButton!
     
     
     // Misc Constants
@@ -51,9 +57,21 @@ class ViewController: UIViewController {
     let kThird:CGFloat = 1.0 / 3.0
     let kHalf: CGFloat = 1.0 / 2.0
     
-    // Misc Variables
+    // Stats
     var dayCounter = 1
+    var moneyAvailable = 10
+    var lemonsInInventory = 0
+    var lemonsPurchased = 0
+    var iceInInventory = 0
+    var icePurchased = 0
+    var lemonsInMix = 0.0
+    var iceInMix = 0.0
+    var mixRatio = 0.0
 
+    override func prefersStatusBarHidden() ->Bool {
+        return true
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -62,12 +80,121 @@ class ViewController: UIViewController {
         setUpFirstContainer(firstContainer)
         setUpSecondContainer(secondContainer)
         setUpThirdContainer(thirdContainer)
+        setUpFourthContainer(fourthContainer)
+        setUpFifthContainer(fifthContainer)
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
+    // IB Actions
+    
+    func purchaseAddLemonButtonPressed (button: UIButton) {
+        
+        if moneyAvailable < 2 {
+            showAlertWithText(header: "Not enough money", message: "Try again!")
+        }
+        else {
+            moneyAvailable -= 2
+            lemonsInInventory += 1
+            lemonsPurchased += 1
+            updateMainView()
+        }
+    }
+    
+    func purchaseDeductLemonButtonPressed (button: UIButton) {
+        if lemonsPurchased < 1 {
+            showAlertWithText(header: "No lemons to remove from order", message: "Try again!")
+        }
+        else if lemonsInInventory == 0 {
+            showAlertWithText(header: "Can not remove lemons currently used in mix", message: "Remove lemons from mix first")
+        }
+        else {
+            moneyAvailable += 2
+            lemonsInInventory -= 1
+            lemonsPurchased -= 1
+            updateMainView()
+        }
+    }
+    
+    func purchaseAddIceButtonPressed (button: UIButton) {
+        if moneyAvailable < 1 {
+            showAlertWithText(header: "Not enough money", message: "Try again!")
+        }
+        else {
+            moneyAvailable -= 1
+            iceInInventory += 1
+            icePurchased += 1
+            updateMainView()
+            
+        }
+    }
+    
+    func purchaseDeductIceButtonPressed (button: UIButton) {
+        if icePurchased < 1{
+            showAlertWithText(header: "No ice to remove from order", message: "Try again!")
+        }
+        else if iceInInventory == 0 {
+            showAlertWithText(header: "Can not remove ice currently used in mix", message: "Remove ice from mix first")
+        }
+        else {
+            moneyAvailable += 1
+            iceInInventory -= 1
+            icePurchased -= 1
+            updateMainView()
+        }
+    }
+    
+    func addLemonsToMixButtonPressed (button: UIButton) {
+        if lemonsInInventory < 1 {
+            showAlertWithText(header: "No lemons in inventory", message: "Buy more lemons first!")
+        }
+        else {
+            lemonsInInventory -= 1
+            lemonsInMix += 1
+            updateMainView()
+        }
+    }
+    
+    func deductLemonsToMixButtonPressed (button: UIButton) {
+        if lemonsInMix < 1 {
+            showAlertWithText(header: "No lemons to remove from mix", message: "Try again!")
+        }
+        else {
+            lemonsInInventory += 1
+            lemonsInMix -= 1
+            updateMainView()
+        }
+    }
+    
+    func addIceToMixButtonPressed (button: UIButton) {
+        if iceInInventory < 1 {
+            showAlertWithText(header: "No ice in inventory", message: "Try again!")
+        }
+        else {
+            iceInInventory -= 1
+            iceInMix += 1
+            updateMainView()
+        }
+    }
+    
+    func deductIceToMixButtonPressed (button: UIButton) {
+        if iceInMix < 1 {
+            showAlertWithText(header: "No ice to remove from mix", message: "Try again!")
+        }
+        else {
+            iceInInventory += 1
+            iceInMix -= 1
+            updateMainView()
+        }
+    }
+    
+    func mixLemonadeButtonPressed (button: UIButton) {
+        createLemonadeRatio()
+    }
+    
     
     
     func setUpContainerViews () {
@@ -84,7 +211,7 @@ class ViewController: UIViewController {
         self.view.addSubview(thirdContainer)
         
         fourthContainer = UIView(frame: CGRect(x: self.view.bounds.origin.x, y: self.firstContainer.frame.height + self.secondContainer.frame.height + self.thirdContainer.frame.height, width: self.view.bounds.width, height: self.view.bounds.height * kEighth * 2))
-        fourthContainer.backgroundColor = UIColor.greenColor()
+        fourthContainer.backgroundColor = UIColor.purpleColor()
         self.view.addSubview(fourthContainer)
         
         fifthContainer = UIView(frame: CGRect(x: self.view.bounds.origin.x, y: self.firstContainer.frame.height + self.secondContainer.frame.height + self.thirdContainer.frame.height + self.fourthContainer.frame.height, width: self.view.bounds.width, height: self.view.bounds.height * kEighth))
@@ -259,6 +386,7 @@ class ViewController: UIViewController {
         self.plusButton.frame = CGRectMake(containerView.bounds.origin.x + containerView.frame.width * kHalf, containerView.bounds.origin.y + containerView.frame.height * kEighth * 3, containerView.bounds.width * kSixteenth, containerView.bounds.height * kEighth)
         self.plusButton.layer.cornerRadius = 0.5 * plusButton.bounds.size.width
         self.plusButton.setImage(UIImage(named: "Plus"), forState: UIControlState.Normal)
+        self.plusButton.addTarget(self, action: "purchaseAddLemonButtonPressed:", forControlEvents: UIControlEvents.TouchUpInside)
         containerView.addSubview(plusButton)
         
         self.numberOfLemonsPurchasedLabel = UILabel()
@@ -272,12 +400,14 @@ class ViewController: UIViewController {
         self.minusButton.frame = CGRectMake(containerView.bounds.origin.x + containerView.frame.width * kEighth * 7, containerView.bounds.origin.y + containerView.frame.height * kEighth * 3, containerView.bounds.width * kSixteenth, containerView.bounds.height * kEighth)
         self.minusButton.layer.cornerRadius = 0.5 * plusButton.bounds.size.width
         self.minusButton.setImage(UIImage(named: "Minus"), forState: UIControlState.Normal)
+        self.minusButton.addTarget(self, action: "purchaseDeductLemonButtonPressed:", forControlEvents: UIControlEvents.TouchUpInside)
         containerView.addSubview(minusButton)
         
         self.plusButton = UIButton()
         self.plusButton.frame = CGRectMake(containerView.bounds.origin.x + containerView.frame.width * kHalf, containerView.bounds.origin.y + containerView.frame.height * kEighth * 6, containerView.bounds.width * kSixteenth, containerView.bounds.height * kEighth)
         self.plusButton.layer.cornerRadius = 0.5 * plusButton.bounds.size.width
         self.plusButton.setImage(UIImage(named: "Plus"), forState: UIControlState.Normal)
+        self.plusButton.addTarget(self, action: "purchaseAddIceButtonPressed:", forControlEvents: UIControlEvents.TouchUpInside)
         containerView.addSubview(plusButton)
         
         self.numberOfIceCubesPurchasedLabel = UILabel()
@@ -291,16 +421,138 @@ class ViewController: UIViewController {
         self.minusButton.frame = CGRectMake(containerView.bounds.origin.x + containerView.frame.width * kEighth * 7, containerView.bounds.origin.y + containerView.frame.height * kEighth * 6, containerView.bounds.width * kSixteenth, containerView.bounds.height * kEighth)
         self.minusButton.layer.cornerRadius = 0.5 * plusButton.bounds.size.width
         self.minusButton.setImage(UIImage(named: "Minus"), forState: UIControlState.Normal)
+        self.minusButton.addTarget(self, action: "purchaseDeductIceButtonPressed:", forControlEvents: UIControlEvents.TouchUpInside)
         containerView.addSubview(minusButton)
         
     }
     
     func setUpFourthContainer (containerView:UIView) {
         
+        self.makeLemonadeLabel = UILabel()
+        self.makeLemonadeLabel.text = "Make Lemonade"
+        self.makeLemonadeLabel.textColor = UIColor.greenColor()
+        self.makeLemonadeLabel.font = UIFont(name: "Chalkduster", size: 18)
+        self.makeLemonadeLabel.sizeToFit()
+        self.makeLemonadeLabel.center = CGPointMake(containerView.frame.width * kEighth * 2, containerView.frame.height * kEighth)
+        containerView.addSubview(makeLemonadeLabel)
         
+        self.mixLemonadeButton = UIButton()
+        self.mixLemonadeButton.setTitle("Mix Now!", forState: UIControlState.Normal)
+        self.mixLemonadeButton.setTitleColor(UIColor.greenColor(), forState: UIControlState.Normal)
+        self.mixLemonadeButton.titleLabel?.font = UIFont(name: "Chalkduster", size: 18)
+        self.mixLemonadeButton.backgroundColor = UIColor.yellowColor()
+        self.mixLemonadeButton.sizeToFit()
+        self.mixLemonadeButton.layer.cornerRadius = 0.2 * mixLemonadeButton.bounds.size.width
+        self.mixLemonadeButton.center = CGPoint(x: containerView.frame.width * kEighth * 7 - kMarginForView, y: containerView.frame.height * kEighth)
+        self.mixLemonadeButton.addTarget(self, action: "mixLemonadeButtonPressed:", forControlEvents: UIControlEvents.TouchUpInside)
+        containerView.addSubview(mixLemonadeButton)
+        
+        self.lemonSymbol = UIImageView ()
+        self.lemonSymbol.image = UIImage(named: "Lemon")
+        self.lemonSymbol.frame = CGRect(
+            x: containerView.bounds.origin.x + kMarginForView,
+            y: containerView.bounds.origin.y + containerView.bounds.size.height * kEighth * 2,
+            width: containerView.bounds.width * kEighth,
+            height: containerView.bounds.height * kEighth * 2)
+        containerView.addSubview(lemonSymbol)
+        
+        self.iceSymbol = UIImageView ()
+        self.iceSymbol.image = UIImage(named: "Ice")
+        self.iceSymbol.frame = CGRect(
+            x: containerView.bounds.origin.x + kMarginForView,
+            y: containerView.bounds.origin.y + containerView.bounds.size.height * kEighth * 5,
+            width: containerView.bounds.width * kEighth,
+            height: containerView.bounds.height * kEighth * 2)
+        containerView.addSubview(iceSymbol)
+        
+        self.plusButton = UIButton()
+        self.plusButton.frame = CGRectMake(containerView.bounds.origin.x + containerView.frame.width * kHalf, containerView.bounds.origin.y + containerView.frame.height * kEighth * 3, containerView.bounds.width * kSixteenth, containerView.bounds.height * kEighth)
+        self.plusButton.layer.cornerRadius = 0.5 * plusButton.bounds.size.width
+        self.plusButton.setImage(UIImage(named: "Plus"), forState: UIControlState.Normal)
+        self.plusButton.addTarget(self, action: "addLemonsToMixButtonPressed:", forControlEvents: UIControlEvents.TouchUpInside)
+        containerView.addSubview(plusButton)
+        
+        self.lemonsInMixLabel = UILabel()
+        self.lemonsInMixLabel.text = "0"
+        self.lemonsInMixLabel.textColor = UIColor.greenColor()
+        self.lemonsInMixLabel.font = UIFont(name: "Chalkduster", size: 20)
+        self.lemonsInMixLabel.frame = CGRectMake(containerView.bounds.origin.x + containerView.frame.width * kEighth * 6 - kMarginForView * 2, containerView.bounds.origin.y + containerView.bounds.size.height * kEighth * 2 + kMarginForView, containerView.bounds.width * kEighth * 2, containerView.bounds.height * kEighth * 2)
+        containerView.addSubview(lemonsInMixLabel)
+        
+        self.minusButton = UIButton()
+        self.minusButton.frame = CGRectMake(containerView.bounds.origin.x + containerView.frame.width * kEighth * 7, containerView.bounds.origin.y + containerView.frame.height * kEighth * 3, containerView.bounds.width * kSixteenth, containerView.bounds.height * kEighth)
+        self.minusButton.layer.cornerRadius = 0.5 * plusButton.bounds.size.width
+        self.minusButton.setImage(UIImage(named: "Minus"), forState: UIControlState.Normal)
+        self.minusButton.addTarget(self, action: "deductLemonsToMixButtonPressed:", forControlEvents: UIControlEvents.TouchUpInside)
+        containerView.addSubview(minusButton)
+        
+        self.plusButton = UIButton()
+        self.plusButton.frame = CGRectMake(containerView.bounds.origin.x + containerView.frame.width * kHalf, containerView.bounds.origin.y + containerView.frame.height * kEighth * 6, containerView.bounds.width * kSixteenth, containerView.bounds.height * kEighth)
+        self.plusButton.layer.cornerRadius = 0.5 * plusButton.bounds.size.width
+        self.plusButton.setImage(UIImage(named: "Plus"), forState: UIControlState.Normal)
+        self.plusButton.addTarget(self, action: "addIceToMixButtonPressed:", forControlEvents: UIControlEvents.TouchUpInside)
+        containerView.addSubview(plusButton)
+        
+        self.iceInMixLabel = UILabel()
+        self.iceInMixLabel.text = "0"
+        self.iceInMixLabel.textColor = UIColor.greenColor()
+        self.iceInMixLabel.font = UIFont(name: "Chalkduster", size: 20)
+        self.iceInMixLabel.frame = CGRectMake(containerView.bounds.origin.x + containerView.frame.width * kEighth * 6 - kMarginForView * 2, containerView.bounds.origin.y + containerView.bounds.size.height * kEighth * 5 + kMarginForView, containerView.bounds.width * kEighth * 2, containerView.bounds.height * kEighth * 2)
+        containerView.addSubview(iceInMixLabel)
+        
+        self.minusButton = UIButton()
+        self.minusButton.frame = CGRectMake(containerView.bounds.origin.x + containerView.frame.width * kEighth * 7, containerView.bounds.origin.y + containerView.frame.height * kEighth * 6, containerView.bounds.width * kSixteenth, containerView.bounds.height * kEighth)
+        self.minusButton.layer.cornerRadius = 0.5 * plusButton.bounds.size.width
+        self.minusButton.setImage(UIImage(named: "Minus"), forState: UIControlState.Normal)
+        self.minusButton.addTarget(self, action: "deductIceToMixButtonPressed:", forControlEvents: UIControlEvents.TouchUpInside)
+        containerView.addSubview(minusButton)
+    }
+    
+    func setUpFifthContainer (containerView:UIView) {
+        
+        self.resultsLabel = UILabel()
+        self.resultsLabel.text = "Results!"
+        self.resultsLabel.textColor = UIColor.redColor()
+        self.resultsLabel.font = UIFont(name: "Chalkduster", size: 18)
+        self.resultsLabel.sizeToFit()
+        self.resultsLabel.center = CGPointMake(containerView.frame.width * kEighth, containerView.frame.height * kEighth)
+        containerView.addSubview(resultsLabel)
+        
+        self.resultsReturnedLabel = UILabel()
+        self.resultsReturnedLabel.text = "You had 5 customers today, 3 bought lemonade!"
+        self.resultsReturnedLabel.textColor = UIColor.redColor()
+        self.resultsReturnedLabel.font = UIFont(name: "Chalkduster", size: 11)
+        self.resultsReturnedLabel.sizeToFit()
+        self.resultsReturnedLabel.center = CGPointMake(containerView.frame.width * kHalf, containerView.frame.height * kEighth * 5)
+        containerView.addSubview(resultsReturnedLabel)
         
     }
     
+    func showAlertWithText (header : String = "Warning", message : String) {
+        var alert = UIAlertController(title: header, message: message, preferredStyle: UIAlertControllerStyle.Alert)
+        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
+        self.presentViewController(alert, animated: true, completion: nil)
+    }
+    
+    func updateMainView () {
+        self.moneyInInventoryLabel.text = "\(moneyAvailable)"
+        self.lemonsInInventoryLabel.text = "\(lemonsInInventory)"
+        self.numberOfLemonsPurchasedLabel.text = "\(lemonsPurchased)"
+        self.iceInInventoryLabel.text = "\(iceInInventory)"
+        self.numberOfIceCubesPurchasedLabel.text = "\(icePurchased)"
+        self.lemonsInMixLabel.text = "\(lemonsInMix)"
+        self.iceInMixLabel.text = "\(iceInMix)"
+    }
+    
+    func createLemonadeRatio () {
+        if lemonsInMix >= 1 && iceInMix >= 1 {
+            mixRatio = lemonsInMix / iceInMix
+            println("\(mixRatio)")
+        }
+        else {
+            showAlertWithText(header: "You must have at least 1 lemon and 1 ice in mix", message: "Try again!")
+        }
+    }
 
 
 }
