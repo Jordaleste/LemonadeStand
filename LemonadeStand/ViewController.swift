@@ -67,6 +67,8 @@ class ViewController: UIViewController {
     var lemonsInMix = 0.0
     var iceInMix = 0.0
     var mixRatio = 0.0
+    var customersForDay:[Customers] = []
+    var customersWhoPurchasedCount = 0
 
     override func prefersStatusBarHidden() ->Bool {
         return true
@@ -192,7 +194,82 @@ class ViewController: UIViewController {
     }
     
     func mixLemonadeButtonPressed (button: UIButton) {
-        createLemonadeRatio()
+        customersWhoPurchasedCount = 0
+        if lemonsInMix >= 1 && iceInMix >= 1 {
+            mixRatio = lemonsInMix / iceInMix
+            println("\(mixRatio)")
+
+        customersForDay = Factory.createCustomers()
+        for Customers in customersForDay {
+            
+            if Customers.preference < 0.4 && mixRatio > 1 {
+                moneyAvailable += 1
+                customersWhoPurchasedCount += 1
+                println("Paid")
+            }
+            
+            else if Customers.preference >= 0.4 && Customers.preference <= 0.6 && mixRatio == 1 {
+                moneyAvailable += 1
+                customersWhoPurchasedCount += 1
+                println("Paid")
+            }
+            
+            else if Customers.preference > 0.6 && mixRatio < 1 {
+                moneyAvailable += 1
+                customersWhoPurchasedCount += 1
+                println("Paid")
+            }
+            
+            else {
+                println("Not Paid")
+            }
+            
+            println ("\(Customers.preference)")
+        }
+        
+    
+        icePurchased = 0
+        lemonsPurchased = 0
+        lemonsInMix = 0.0
+        iceInMix = 0.0
+        dayCounter += 1
+        var randomWeather = Int(arc4random_uniform(UInt32(3)))
+            switch randomWeather {
+            case 0:
+                self.weatherSymbol.image = UIImage(named: "Cold")
+            case 1:
+                self.weatherSymbol.image = UIImage(named: "Warm")
+            default:
+                self.weatherSymbol.image = UIImage(named: "Mild")
+                
+            }
+            
+        
+            if moneyAvailable == 0 && lemonsInInventory == 0 {
+                resetGame()
+            }
+            
+            if moneyAvailable == 0 && iceInInventory == 0 {
+                resetGame()
+            }
+            
+            if moneyAvailable == 1 && lemonsInInventory == 0 {
+                resetGame()
+            }
+            if moneyAvailable == 2 && lemonsInInventory == 0 && iceInInventory == 0 {
+                resetGame()
+            }
+            
+    
+        updateMainView()
+        println("\(customersForDay.count)")
+            
+        }
+
+            
+        else {
+            showAlertWithText(header: "You must have at least 1 lemon and 1 ice in mix", message: "Try again!")
+        }
     }
     
     
@@ -230,7 +307,7 @@ class ViewController: UIViewController {
         containerView.addSubview(titleLabel)
         
         self.dayLabel = UILabel()
-        self.dayLabel.text = "Day: \(dayCounter)"
+        self.dayLabel.text = "Day: \(dayCounter)  "
         self.dayLabel.textColor = UIColor.redColor()
         self.dayLabel.font = UIFont(name: "Chalkduster", size: 23)
         self.dayLabel.sizeToFit()
@@ -302,7 +379,7 @@ class ViewController: UIViewController {
         containerView.addSubview(todaysWeatherLabel)
         
         self.weatherSymbol = UIImageView ()
-        self.weatherSymbol.image = UIImage(named: "Cold")
+        self.weatherSymbol.image = UIImage(named: "Mild")
         self.weatherSymbol.frame = CGRect(
             x: containerView.bounds.origin.x + containerView.bounds.size.width * kEighth * 7 - kMarginForView,
             y: containerView.bounds.origin.y + containerView.bounds.size.height * kEighth,
@@ -519,7 +596,7 @@ class ViewController: UIViewController {
         containerView.addSubview(resultsLabel)
         
         self.resultsReturnedLabel = UILabel()
-        self.resultsReturnedLabel.text = "You had 5 customers today, 3 bought lemonade!"
+        self.resultsReturnedLabel.text = "You had 0 customers today, 0 bought lemonade!   "
         self.resultsReturnedLabel.textColor = UIColor.redColor()
         self.resultsReturnedLabel.font = UIFont(name: "Chalkduster", size: 11)
         self.resultsReturnedLabel.sizeToFit()
@@ -537,21 +614,25 @@ class ViewController: UIViewController {
     func updateMainView () {
         self.moneyInInventoryLabel.text = "\(moneyAvailable)"
         self.lemonsInInventoryLabel.text = "\(lemonsInInventory)"
+        self.dayLabel.text = "Day: \(dayCounter)"
         self.numberOfLemonsPurchasedLabel.text = "\(lemonsPurchased)"
         self.iceInInventoryLabel.text = "\(iceInInventory)"
         self.numberOfIceCubesPurchasedLabel.text = "\(icePurchased)"
         self.lemonsInMixLabel.text = "\(lemonsInMix)"
         self.iceInMixLabel.text = "\(iceInMix)"
+        self.resultsReturnedLabel.text = "You had \(customersForDay.count) customers today.  \(customersWhoPurchasedCount) bought lemonade"
     }
     
-    func createLemonadeRatio () {
-        if lemonsInMix >= 1 && iceInMix >= 1 {
-            mixRatio = lemonsInMix / iceInMix
-            println("\(mixRatio)")
-        }
-        else {
-            showAlertWithText(header: "You must have at least 1 lemon and 1 ice in mix", message: "Try again!")
-        }
+    func resetGame () {
+        showAlertWithText(header: "Game Over", message: "You do not have enough resources to continue")
+        moneyAvailable = 10
+        lemonsInInventory = 0
+        lemonsPurchased = 0
+        iceInInventory = 0
+        icePurchased = 0
+        lemonsInMix = 0.0
+        iceInMix = 0.0
+        dayCounter = 1
     }
 
 
