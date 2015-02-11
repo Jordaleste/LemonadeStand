@@ -336,7 +336,7 @@ class ViewController: UIViewController {
         containerView.addSubview(moneySymbol)
         
         self.moneyInInventoryLabel = UILabel()
-        self.moneyInInventoryLabel.text = "10"
+        self.moneyInInventoryLabel.text = "\(moneyAvailable)"
         self.moneyInInventoryLabel.textColor = UIColor.greenColor()
         self.moneyInInventoryLabel.font = UIFont(name: "Chalkduster", size: 18)
         self.moneyInInventoryLabel.frame = CGRect(
